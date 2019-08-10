@@ -1,0 +1,19 @@
+# the file name format. denote page number part by {{}}. 
+# the algorithm will automatically skip non-png files.
+# my files were bakemono0010_s.png to bakemono0443_s.png. four digits.
+page_start 444
+page_end 445
+input_digits 4
+# my files had 18 pages on default.
+default_lines 18
+# is the page divided in half, so that they form chunks up and down?
+# mine did.
+text_chunks 1
+line_furigana_ratio 0.65
+
+
+# I recommend putting these two at the very end.
+# Sorry for the inconvenience, make the folder yourself.
+input bakemono{{}}_s.png
+output ./processing/processed_bake{{}}.png
+
