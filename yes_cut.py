@@ -104,57 +104,46 @@ def preprocess(im,pageno,default_linenum,lfr):
         for i in range(int(linewidth)):
             try:
                 should_we_filter[entry+i-2] = False
+        #        should_we_filter[entry-2] = 2
             except IndexError:
                 break
     for ind, yes_or_no in enumerate(should_we_filter):
         if yes_or_no is True:
             c.paste(light,box=((ind,0,ind+1,h)))
+        if yes_or_no is 2:
+            c.paste(dark,box=((ind,0,ind+1,h)))
     return c
 
-def split_into_halves(im,pageno,lines,ratio):
-    w,h = im.size
-    im = im.crop((w//20,h//11,19*w//20,h))
-    w,h = im.size
-    im1 = preprocess(im.crop((0,0,w,h//2)),pageno,lines,ratio)
-    im2 = preprocess(im.crop((0,h//2,w,h)),pageno,lines,ratio)
-    return (im1,im2)
+def roll(image,up,down,left,right):
+    w,h=image.size
+    return image.crop((w*left//100,h*up//100,w-w*right//100,h-h*down//100))
 
-def dont_split_into_halves(im,pageno,lines,ratio):
-    w,h  = im.size
-    im = im.crop((w//20,h//11,19*w//20,h))
-    w,h = im.size
-    return preprocess(im,pageno,lines,ratio)
-
-def parse_config(filename):
-    ret = {}
-    with open(filename,"r") as config:
-        lines = config.readlines()
-        for line in lines:
-            if line[0]=='#':
-                continue
-            space = line.find(" ")
-            word = line[:space]
-            if word == "input_digits":
-                ret["digits"] = int(line[space+1:]) 
-            elif word == "page_start":
-                ret["start"] = int(line[space+1:])
-            elif word == "page_end":
-                ret["end"] = int(line[space+1:])
-            elif word == "default_lines":
-                ret["dfl"] = int(line[space+1:])
-            elif word == "text_chunks":
-                ret["chunks"] = int(line[space+1:])
-            elif word == "line_furigana_ratio":
-                ret["ratio"] = eval(line[space+1:])
-            elif word == "output":
-                ret["output"] = line[space+1:].replace("{{}}",f"%0{ret['digits']}d").strip() 
-            elif word == "input":
-                ret["input"] = line[space+1:].replace("{{}}",f"%0{ret['digits']}d").strip()
+def horizontal_split(image_iter):
+    ret = []
+    for im in image_iter:
+        w,h=im.size
+        ret.append(im.crop(w//2,0,w,h))
+        ret.append(im.crop(0,0,w//2,h))
     return ret
+
+def vertical_split(image_iter):
+    ret = []
+    for im in image_iter:
+        w,h=im.size
+        ret.append(im.crop(0,0,w,h//2))
+        ret.append(im.crop(0,h//2,w,h))
+    return ret
+
+
+def into_greyscale(image_iter):
+    return [im.convert('L') for im in image_iter]
+    # However, I doubt Pillow's RGBA->L Works well. 
 
 def run(config_file_name):
     d = parse_config(config_file_name)
-    for no in range(d["start"],d["end"]+1):
+    for no in range(d["page_start"],d["page_end"]+1):
+        if no in d["exempt"]:
+            continue
         inputfile = d["input"] % no
         outputfile = d["output"] % no
         try:
@@ -162,22 +151,45 @@ def run(config_file_name):
         except FileNotFoundError:
             print("the file {%s} does not exist" % inputfile)
             continue
-        if d["chunks"] == 2:
-            (im1,im2) = split_into_halves(im,no,d["dfl"],d["ratio"])
-            if im1 is not None:
-                im1.save(outputfile.replace(".png","_1.png"))
-            if im2 is not None:
-                im2.save(outputfile.replace(".png","_2.png"))
-        elif d["chunks"] == 1:
-            im1 = dont_split_into_halves(im,no,d["dfl"],d["ratio"])
-            if im1 is not None:
-                im1.save(outputfile)
-        else:
-            raise Exception("The number of chunks is not 1 or 2.")
+        image_iter = [roll(im,d["roll_up"],d["roll_down"],d["roll_left"],d["roll_right"])]
+        if d["vertical_chunk"] == 2:
+            image_iter = vertical_split(image_iter)
+        if d["horizontal_chunk"] == 2:
+            image_iter = horizontal_split(image_iter)
+        for nnnn,im in enumerate(into_greyscale(image_iter)):
+            temp = roll(im,d["roll_up_after"],d["roll_down_after"],d["roll_left_after"],d["roll_right_after"])
+            temp = preprocess(temp,no,d["default_lines"],d["ratio"])
+            if temp is not None and len(image_iter)>1:
+                temp.save(outputfile.replace(".","_%d." % nnnn))
+            elif temp is not None:
+                temp.save(outputfile)
+
+def parse_config(filename):
+    ret = {}
+    with open(filename,"r") as config:
+        lines = config.readlines()
+        for line in lines:
+            line = line.strip()
+            if len(line)==0 or line[0]=='#':
+                continue
+            space = line.find(" ")
+            word = line[:space].strip()
+            if word == "line_furigana_ratio":
+                ret["ratio"] = eval(line[space+1:])
+            elif word == "output":
+                ret["output"] = line[space+1:].replace("{{}}",f"%0{ret['input_digits']}d").strip() 
+            elif word == "input":
+                ret["input"] = line[space+1:].replace("{{}}",f"%0{ret['input_digits']}d").strip()
+            elif word == "exempt":
+                ret["exempt"] = [int(no) for no in line.split(" ")[1:]]
+            else:
+                ret[word] = int(line[space+1:])
+    print(ret)
+    return ret
 
 if __name__=="__main__":
-    try:
-        run(sys.argv[1])
-    except IndexError:
-        print(f"format: python3 {sys.argv[0]} (config file name)")
+    # try:
+    run(sys.argv[1])
+    #except IndexError:
+        #print(f"format: python3 {sys.argv[0]} (config file name)")
 

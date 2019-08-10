@@ -1,0 +1,33 @@
+# the file name format. denote page number part by {{}}. 
+# the algorithm will automatically skip non-png files.
+page_start 120
+page_end 140
+exempt 122 124 125
+input_digits 4
+# my files had 18 pages on default.
+default_lines 17
+line_furigana_ratio 0.65
+
+#write in percents(0-50)
+roll_up 3
+roll_down 0
+roll_left 0
+roll_right 0
+
+# is the page divided in half, so that they form chunks up and down?
+# mine did.
+vertical_chunk 1
+horizontal_chunk 1
+
+#after splitting, how much is to be rolled?(0-100)
+roll_up_after 0
+roll_down_after 0
+roll_left_after 0
+roll_right_after 0
+
+
+# I recommend putting these two at the very end.
+# Sorry for the inconvenience, make the folder yourself.
+input {{}}.jpg
+output ./processed/{{}}.jpg
+
