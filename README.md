@@ -24,13 +24,14 @@ Clone this repo.
 
 *First*, As there are quite a few parameters we need to tweak, _we use a config file_. 
 You are free to choose any name you want, as long as your shell can handle it. 
-You may choose to use the example config file bakemonoconfig.txt.
+Please refer to the [example file](https://github.com/stet-stet/yescut_furigana/blob/master/bakemonoconfig).
 
-*Second*, make a folder named "processed" on the directory you are to work on.(later versions will handle this, sorry for the inconvenience)
+*Second*, make a folder ("./processed" for the example file) on the directory you are to work on.
+(later versions will handle this automatically, sorry for the inconvenience)
 
 *Third", do: `python yes_cut.py (name of your config file)`
 
-Due to copyright concerns I will not be able to post example images. Sorry for the inconvenience.
+Due to copyright concerns I will not be able to post example output images. Sorry for the inconvenience.
 
 ## etc etc
 
