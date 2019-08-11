@@ -16,8 +16,8 @@ It's probably a good idea to cut furigana first. (Often gives a slight accuracy 
 ## Tips
  
  * The files must be very, very, very clean near the text. Little black specks near the edge are automatically cut out.
+   * If your scans are originally jpg, chances are that this tool will not work.
  * The algorithm relies heavily on the text being exactly vertical.
- * The algorithm starts off by cutting 1/11 from the top, ans 1/20 each from the sides. Please just feed the whole page. 
  * If the lines are too close together we cannot deal with those pages. A good example would be HenNeko vol. 1.
  * If there are minimal amounts of furigana in the scan, **don't use this.** This tool will do more harm than good.
  * In contrast, if the scan has a LOT of furigana(like the monogatari series) it is a good idea to use this tool.
